@@ -2,8 +2,7 @@
 
 I wanted to have a packer because i created individual texture and i didnt wanted to "open image -> move to atlas" manually xD
 So i created one myself, feel free to use it.
-Only work with png and bmp.
-Image color result may differ from original (Need polishing)
+- Only work with png and bmp (for now).
 
 # The gui:
 ![TexturePackerImg1](https://github.com/user-attachments/assets/f1c12934-2096-4f5e-9365-3457ef094ec3)
