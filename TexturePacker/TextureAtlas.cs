@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace TexturePacker
@@ -68,6 +69,7 @@ namespace TexturePacker
                     ToolStripStatusLabel.Text = "Failed to write image, max height was reached !";
                 return;
             }
+
             // Write pixel at the destination bitmap !
             for (int x = 0; x < image.Width; x++)
             {
@@ -78,6 +80,7 @@ namespace TexturePacker
                     Result.SetPixel(posX, posY, image.GetPixel(x, y));
                 }
             }
+
             CurrentPos.X += image.Width;
             if (CurrentPos.X >= Size.Width || (MaxSize.Width != -1 && CurrentPos.X >= MaxSize.Width)) // Dont go over maxWidth.
             {
@@ -89,9 +92,21 @@ namespace TexturePacker
         public void Process()
         {
             // make the atlas full black
-            for (int x = 0; x < Result.Width; x++)
-                for (int y = 0; y < Result.Height; y++)
-                    Result.SetPixel(x, y, Color.Black);
+            Rectangle rect = new Rectangle(0, 0, Result.Width, Result.Height);
+            BitmapData bmpData = Result.LockBits(rect, ImageLockMode.WriteOnly, Result.PixelFormat);
+            IntPtr ptr = bmpData.Scan0;
+            int bytes = Math.Abs(bmpData.Stride) * Result.Height;
+            byte[] rgbValues = new byte[bytes];
+            Marshal.Copy(ptr, rgbValues, 0, bytes);
+            for (int counter = 0; counter < rgbValues.Length; counter += 4)
+            {
+                rgbValues[counter + 0] = Color.Black.A;
+                rgbValues[counter + 0] = Color.Black.R;
+                rgbValues[counter + 1] = Color.Black.G;
+                rgbValues[counter + 2] = Color.Black.B;
+            }
+            Marshal.Copy(rgbValues, 0, ptr, bytes);
+            Result.UnlockBits(bmpData);
 
             // then write each texture to it.
             foreach (var image in ImageList)
@@ -109,6 +124,7 @@ namespace TexturePacker
                 if (path.Contains(".bmp"))
                     path.Replace(".bmp", ".png");
                 Result.Save(path, ImageFormat.Png);
+                DisposeAll();
                 return true;
             }
             else if (ext.Contains(".bmp"))
@@ -116,20 +132,28 @@ namespace TexturePacker
                 if (path.Contains(".png"))
                     path.Replace(".png", ".bmp");
                 Result.Save(path, ImageFormat.Bmp);
+                DisposeAll();
                 return true;
             }
+
+            DisposeAll();
             return false;
         }
 
-        public void Dispose()
+        public void DisposeAll()
         {
             if (ImageList != null)
             {
                 foreach (var image in ImageList)
                     image.Dispose();
             }
-            ImageList?.Clear();
-            Result?.Dispose();
+            ImageList.Clear();
+            Result.Dispose();
+        }
+
+        public void Dispose()
+        {
+            DisposeAll();
             GC.SuppressFinalize(this);
         }
     }
