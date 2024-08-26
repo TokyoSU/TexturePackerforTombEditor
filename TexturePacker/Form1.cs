@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageMagick;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -14,6 +15,7 @@ namespace TexturePacker
     {
         private StringBuilder ExtensionBuilder = new StringBuilder();
         private TextureAtlasJson Json = new TextureAtlasJson();
+        private List<MagickImage> Images = new List<MagickImage>();
         private const string ReadyStr = "Ready.";
         private const string SuccessStr = "Success.";
         private Size ImageSize = new Size(64, 64);
@@ -51,11 +53,11 @@ namespace TexturePacker
             var firstPath = pathList.ElementAtOrDefault(0);
             if (firstPath.Length > 0)
             {
-                var image = Image.FromFile(firstPath);
+                var image = new MagickImage(firstPath);
                 if (image != null)
                 {
-                    FileImageList.ImageSize = image.Size;
-                    ImageSize = image.Size;
+                    FileImageList.ImageSize = new Size(image.Width, image.Height);
+                    ImageSize = new Size(image.Width, image.Height);
                     image.Dispose();
                 }
             }
@@ -76,7 +78,9 @@ namespace TexturePacker
                     var noExt = Path.GetFileNameWithoutExtension(item);
                     if (FileListView.ContainsThreaded(FileImageList, noExt)) // Dont add already added images.
                         continue;
-                    FileListView.AddThreaded(FileImageList, noExt, Image.FromFile(item, true));
+                    var img = new MagickImage(item);
+                    Images.Add(img);
+                    FileListView.AddThreaded(FileImageList, noExt, img.ToBitmap());
                     StatusBar.UpdateThreaded(progress++);
                 }
                 e.Result = true;
@@ -119,7 +123,6 @@ namespace TexturePacker
             GetMaxAtlasSize(out var maxAtlasWidthSize, out var maxAtlasHeightSize);
             StatusBar.Maximum = FileImageList.Images.Keys.Count - 1;
 
-            var imageToSave = new List<Image>();
             int posX = 0, width = 0, height = 0;
             bool nextLine = false;
             for (int i = 0; i < FileImageList.Images.Keys.Count; i++)
@@ -156,29 +159,13 @@ namespace TexturePacker
                 atlasData.Height = image.Height;
                 Json.Add(atlasData);
 
-                imageToSave.Add(image);
                 StatusBar.Value = i;
             }
 
             height += ImageSize.Height; // Add a new row at the end to avoid missing last texture.
             var textureAtlas = new TextureAtlas(width, height, maxAtlasWidthSize, maxAtlasHeightSize);
             textureAtlas.SetStatusLabel(curStatusStr);
-
-            var prevSize = ImageSize;
-            int wrongImage = 0;
-            foreach (var image in imageToSave)
-            {
-                var size = image.Size;
-                if (size != prevSize)
-                {
-                    SetStatusText(string.Format("Failed to write an image, wrong size count: {0}, size: {1}, prevSize: {2}", wrongImage++, size.ToString(), prevSize.ToString()));
-                    continue;
-                }
-                prevSize = size;
-                textureAtlas.AddImage(new Bitmap(image));
-            }
-
-            textureAtlas.Process();
+            textureAtlas.Process(Images);
             if (textureAtlas.Save(destPath))
                 SetStatusText("Success saving file to: " + destPath);
             else
@@ -228,13 +215,11 @@ namespace TexturePacker
 
         private bool ClearList()
         {
-            if (FileImageList.Images.Count <= 0)
-            {
-                SetStatusText("No image loaded.");
-                return false;
-            }
             FileListView.Items.Clear();
             FileImageList.Images.Clear();
+            foreach (var image in Images)
+                image.Dispose();
+            Images.Clear();
             Json.Clear();
             return true;
         }

@@ -1,10 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using ImageMagick;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace TexturePacker
@@ -26,8 +25,7 @@ namespace TexturePacker
         private Vector2i CurrentPos = new Vector2i();
         private Size Size = Size.Empty;
         private Size MaxSize = Size.Empty;
-        private List<Bitmap> ImageList = null;
-        private Bitmap Result = null;
+        private MagickImage Result;
 
         public TextureAtlas() => InitializeAtlas(0, 0);
         public TextureAtlas(int width, int height) => InitializeAtlas(width, height);
@@ -41,8 +39,10 @@ namespace TexturePacker
             CurrentPos = new Vector2i(0, 0);
             Size = new Size(width, height);
             MaxSize = new Size(maxWidth, maxHeight);
-            ImageList = new List<Bitmap>();
-            Result = new Bitmap(width, height);
+            Result = new MagickImage(ColorMono.Black.ToMagickColor(), width, height)
+            {
+                Format = MagickFormat.Rgba
+            };
             if (width <= 0 || height <= 0 || maxWidth == 0 || maxHeight == 0)
                 throw new Exception("Failed to create the atlas array, width/height is negative or 0, or maxWidth/maxHeight is 0");
             if (maxWidth != -1 && width > maxWidth)
@@ -51,15 +51,8 @@ namespace TexturePacker
                 throw new Exception("Failed to create the atlas bitmap, width is out of bounds !");
         }
 
-        public void AddImage(Bitmap image)
+        private void AddImageAtPosition(MagickImage image)
         {
-            ImageList.Add(image);
-        }
-
-        private void AddImageAtPosition(Bitmap image)
-        {
-            if (Result == null)
-                throw new Exception("Failed to write atlas, destination bitmap is null !");
             if (image == null)
                 throw new Exception("Failed to write atlas, image bitmap is null !");
 
@@ -70,6 +63,7 @@ namespace TexturePacker
                 return;
             }
 
+            var pixelCollection = Result.GetPixels();
             // Write pixel at the destination bitmap !
             for (int x = 0; x < image.Width; x++)
             {
@@ -77,7 +71,9 @@ namespace TexturePacker
                 {
                     int posX = CurrentPos.X + x;
                     int posY = CurrentPos.Y + y;
-                    Result.SetPixel(posX, posY, image.GetPixel(x, y));
+                    var pixels = image.GetPixels().GetValue(x, y);
+                    if (pixels == null) continue;
+                    pixelCollection.SetPixel(posX, posY, pixels);
                 }
             }
 
@@ -89,27 +85,10 @@ namespace TexturePacker
             }
         }
 
-        public void Process()
+        public void Process(List<MagickImage> imagelist)
         {
-            // make the atlas full black
-            Rectangle rect = new Rectangle(0, 0, Result.Width, Result.Height);
-            BitmapData bmpData = Result.LockBits(rect, ImageLockMode.WriteOnly, Result.PixelFormat);
-            IntPtr ptr = bmpData.Scan0;
-            int bytes = Math.Abs(bmpData.Stride) * Result.Height;
-            byte[] rgbValues = new byte[bytes];
-            Marshal.Copy(ptr, rgbValues, 0, bytes);
-            for (int counter = 0; counter < rgbValues.Length; counter += 4)
-            {
-                rgbValues[counter + 0] = Color.Black.A;
-                rgbValues[counter + 0] = Color.Black.R;
-                rgbValues[counter + 1] = Color.Black.G;
-                rgbValues[counter + 2] = Color.Black.B;
-            }
-            Marshal.Copy(rgbValues, 0, ptr, bytes);
-            Result.UnlockBits(bmpData);
-
             // then write each texture to it.
-            foreach (var image in ImageList)
+            foreach (var image in imagelist)
             {
                 AddImageAtPosition(image);
             }
@@ -119,11 +98,14 @@ namespace TexturePacker
         {
             string path = destPath;
             var ext = Path.GetExtension(path);
+            var file = Result.ToBitmap();
+
             if (ext.Contains(".png"))
             {
                 if (path.Contains(".bmp"))
                     path.Replace(".bmp", ".png");
-                Result.Save(path, ImageFormat.Png);
+                file.Save(path, ImageFormat.Png);
+                file.Dispose();
                 DisposeAll();
                 return true;
             }
@@ -131,23 +113,19 @@ namespace TexturePacker
             {
                 if (path.Contains(".png"))
                     path.Replace(".png", ".bmp");
-                Result.Save(path, ImageFormat.Bmp);
+                file.Save(path, ImageFormat.Bmp);
+                file.Dispose();
                 DisposeAll();
                 return true;
             }
 
+            file.Dispose();
             DisposeAll();
             return false;
         }
 
         public void DisposeAll()
         {
-            if (ImageList != null)
-            {
-                foreach (var image in ImageList)
-                    image.Dispose();
-            }
-            ImageList.Clear();
             Result.Dispose();
         }
 
