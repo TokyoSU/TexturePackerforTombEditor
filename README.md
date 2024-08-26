@@ -6,10 +6,17 @@ Only work with png and bmp.
 Image color result may differ from original (Need polishing)
 
 # The gui:
-![TexturePackerImg1](https://github.com/user-attachments/assets/bc17a1ab-03ad-49b6-bba4-17c8d34a09fd)
+![TexturePackerImg1](https://github.com/user-attachments/assets/f1c12934-2096-4f5e-9365-3457ef094ec3)
+
 
 # Atlas when created:
-![TexturePackerImg2](https://github.com/user-attachments/assets/8e841737-1d20-43c5-a22d-5aeb515f8043)
+- Default size:
+
+![TexturePackerImg4](https://github.com/user-attachments/assets/07736535-2c4b-40c7-ab61-7c314f138c2a)
+
+- Custom size:
+
+![TexturePackerImg2](https://github.com/user-attachments/assets/15de45ee-3bac-4e52-bc5a-8e9254412d9a)
 
 # Json format:
 ![TexturePackerImg3](https://github.com/user-attachments/assets/54a89558-26ec-4e04-897c-6380048be428)
