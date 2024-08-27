@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35219.272
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TexturePacker", "TexturePacker\TexturePacker.csproj", "{C0E116DF-6072-4AAD-A0B2-394F96112EEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TombTexPacker", "TombTexPacker\TombTexPacker.csproj", "{DD323512-4D2E-4F10-9715-9C1F838601E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C0E116DF-6072-4AAD-A0B2-394F96112EEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C0E116DF-6072-4AAD-A0B2-394F96112EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C0E116DF-6072-4AAD-A0B2-394F96112EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C0E116DF-6072-4AAD-A0B2-394F96112EEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD323512-4D2E-4F10-9715-9C1F838601E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD323512-4D2E-4F10-9715-9C1F838601E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD323512-4D2E-4F10-9715-9C1F838601E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD323512-4D2E-4F10-9715-9C1F838601E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A178FB05-E423-4D76-A436-78DA7E3009B5}
+		SolutionGuid = {F6B367F3-2706-4C08-95D0-BAE16E08C0D6}
 	EndGlobalSection
 EndGlobal

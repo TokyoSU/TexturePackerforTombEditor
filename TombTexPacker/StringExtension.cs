@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace TexturePacker
+﻿namespace TombTexPacker
 {
     public static class StringExtension
     {
